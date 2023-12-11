@@ -1,5 +1,12 @@
 <template>
-  <div v-if="isLoaded" class="products">
+
+  <div v-if="isLoading" class="load-block">
+    <div class="container">
+      <load></load>
+    </div>
+  </div>
+
+  <div v-else class="products">
     <div class="container">
       <div class="products__wrapper">
         <product 
@@ -11,18 +18,14 @@
     </div>
   </div>
 
-  <div v-else-if="isError" class="error-message">
+  <div v-if="isError" class="error-message">
     <div class="container">
       <h2>Что-то пошло не так :(</h2>
       <h3>Обновите страницу <br> или посетите сайт позже...</h3>
     </div>
   </div>
 
-  <div v-else class="load-block">
-    <div class="container">
-      <load></load>
-    </div>
-  </div>
+  
     
 </template>
 
@@ -31,26 +34,22 @@ import { ref, onMounted } from 'vue';
 
 import Product from '@/components/Product.vue';
 import Load from '@/components/Load.vue';
+import { getProducts } from '@/services/productServices';
 
 
 const products = ref(null);
-const isLoaded = ref(false);
+const isLoading = ref(true);
 const isError = ref(false);
 
-onMounted(getProducts);
+onMounted(async () => {
+  products.value = await getProducts();
+  isLoading.value = false;
 
-function getProducts() {
-  fetch('https://fakestoreapi.com/products')
-    .then(res=>res.json())
-    .then(json=> {
-      products.value = json;
-      isLoaded.value = true;
-    })
-    .catch(err => {
-      isError.value = true;
-    })
-}
+  if (!products.value) {
+    isError.value = true;
+  }
 
+});
 
 </script>
 
